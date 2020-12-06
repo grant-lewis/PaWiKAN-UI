@@ -31,6 +31,8 @@ using ZedGraph;
 using LogAnalyzer = MissionPlanner.Utilities.LogAnalyzer;
 using TableLayoutPanelCellPosition = System.Windows.Forms.TableLayoutPanelCellPosition;
 using UnauthorizedAccessException = System.UnauthorizedAccessException;
+using rtChart;
+using System.IO.Ports;
 
 // written by michael oborne
 
@@ -2111,8 +2113,10 @@ namespace MissionPlanner.GCSViews
             //thisthread.Join();
         }
 
+        kayChart serialDataChart;
         private void FlightData_Load(object sender, EventArgs e)
         {
+            serialDataChart = new kayChart(chart1, 60);
             POI.POIModified += POI_POIModified;
 
             tfr.GotTFRs += tfr_GotTFRs;
@@ -5215,6 +5219,113 @@ namespace MissionPlanner.GCSViews
 
             hud1.displayCellVoltage = true;
             hud1.batterycellcount = iCellCount;
+        }
+
+        // new functions for new UI stuff
+
+        // when stream button is clicked, retrieve URL and stream on videoCapture UI element
+        private void streamBtn_Click(object sender, EventArgs e)
+        {
+            var ip = streamTxt.Text;
+            try
+            {
+                videoCapture1.IP_Camera_Source = new VisioForge.Types.Sources.IPCameraSourceSettings() { URL = ip, Type = VisioForge.Types.VFIPSource.Auto_LAV };
+                videoCapture1.Audio_PlayAudio = videoCapture1.Audio_RecordAudio = false;
+                videoCapture1.Mode = VisioForge.Types.VFVideoCaptureMode.IPPreview;
+
+                videoCapture1.Start();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message);
+            }
+        }
+
+        // stop button
+        private void stopBtn_Click(object sender, EventArgs e)
+        {
+            videoCapture1.Stop();
+        }
+
+        // retrieve specified COM and start receiving 
+        private void serialBtn_Click(object sender, EventArgs e)
+        {
+            string comNum = comTxt.Text;
+            try
+            {
+                SerialPort aSerialPort = new SerialPort(comNum);
+                aSerialPort.BaudRate = 115200;
+                aSerialPort.Parity = Parity.None;
+                aSerialPort.StopBits = StopBits.One;
+                aSerialPort.DataBits = 8;
+                aSerialPort.DataReceived += new SerialDataReceivedEventHandler(serialDataReceivedEventHandler);
+
+                if (!aSerialPort.IsOpen)
+                {
+                    aSerialPort.Open();
+                }
+            }
+            catch (Exception exc)
+            {
+                System.Windows.Forms.MessageBox.Show("No " + comNum + " found: " + exc.Message);
+                /*
+                String line;
+                try
+                {
+                    //Pass the file path and file name to the StreamReader constructor
+                    //String file = "C:\\Users\\ONA\\Desktop\\sample.txt";
+
+                   // System.Windows.Forms.MessageBox.Show(file);
+                    StreamReader sr = new StreamReader(file);
+                    //Read the first line of text
+                    line = sr.ReadLine();
+                    //Continue to read until you reach end of file
+                    while (line != null)
+                    {
+                        //System.Windows.Forms.MessageBox.Show(line);
+                        //write the lie to console window
+                        // Console.WriteLine(line);
+                        arduinoTxt.AppendText(line);
+                        arduinoTxt.AppendText(Environment.NewLine);
+
+                        //Read the next line
+                        line = sr.ReadLine();
+                    }
+                    //close the file
+                    sr.Close();
+                    //Console.ReadLine();
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message);
+                }
+                */
+            }
+        }
+
+        private void serialDataReceivedEventHandler(object sender, SerialDataReceivedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            SerialPort sData = sender as SerialPort;
+            string recvData = sData.ReadLine();
+
+            arduinoTxt.Invoke((MethodInvoker)delegate { arduinoTxt.AppendText("Received: " + recvData); });
+
+            // init of chart update
+            double data;
+            bool result = Double.TryParse(recvData, out data);
+            if (result)
+            {
+                serialDataChart.TriggeredUpdate(data);
+                serialDataChart.serieName = "serialRead";
+            }
+
+        }
+
+        private void arduinoTxt_TextChanged(object sender, EventArgs e)
+        {
+            arduinoTxt.SelectionStart = arduinoTxt.Text.Length;
+            arduinoTxt.ScrollToCaret();
         }
     }
 }
