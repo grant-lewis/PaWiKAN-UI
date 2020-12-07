@@ -5229,7 +5229,7 @@ namespace MissionPlanner.GCSViews
             var ip = streamTxt.Text;
             try
             {
-                videoCapture1.IP_Camera_Source = new VisioForge.Types.Sources.IPCameraSourceSettings() { URL = ip, Type = VisioForge.Types.VFIPSource.Auto_LAV };
+                videoCapture1.IP_Camera_Source = new VisioForge.Types.Sources.IPCameraSourceSettings() { URL = ip, Type = VisioForge.Types.VFIPSource.Auto_LAV};
                 videoCapture1.Audio_PlayAudio = videoCapture1.Audio_RecordAudio = false;
                 videoCapture1.Mode = VisioForge.Types.VFVideoCaptureMode.IPPreview;
 
@@ -5238,6 +5238,7 @@ namespace MissionPlanner.GCSViews
             catch (Exception ex)
             {
                 System.Windows.Forms.MessageBox.Show(ex.Message);
+                videoCapture1.Stop();
             }
         }
 
@@ -5251,15 +5252,11 @@ namespace MissionPlanner.GCSViews
         private void serialBtn_Click(object sender, EventArgs e)
         {
             string comNum = comTxt.Text;
+            SerialPort aSerialPort = new SerialPort(comNum, 9600, Parity.None, 8, StopBits.One);
+            aSerialPort.DataReceived += new SerialDataReceivedEventHandler(serialDataReceivedEventHandler);
+
             try
             {
-                SerialPort aSerialPort = new SerialPort(comNum);
-                aSerialPort.BaudRate = 115200;
-                aSerialPort.Parity = Parity.None;
-                aSerialPort.StopBits = StopBits.One;
-                aSerialPort.DataBits = 8;
-                aSerialPort.DataReceived += new SerialDataReceivedEventHandler(serialDataReceivedEventHandler);
-
                 if (!aSerialPort.IsOpen)
                 {
                     aSerialPort.Open();
@@ -5268,38 +5265,7 @@ namespace MissionPlanner.GCSViews
             catch (Exception exc)
             {
                 System.Windows.Forms.MessageBox.Show("No " + comNum + " found: " + exc.Message);
-                /*
-                String line;
-                try
-                {
-                    //Pass the file path and file name to the StreamReader constructor
-                    //String file = "C:\\Users\\ONA\\Desktop\\sample.txt";
-
-                   // System.Windows.Forms.MessageBox.Show(file);
-                    StreamReader sr = new StreamReader(file);
-                    //Read the first line of text
-                    line = sr.ReadLine();
-                    //Continue to read until you reach end of file
-                    while (line != null)
-                    {
-                        //System.Windows.Forms.MessageBox.Show(line);
-                        //write the lie to console window
-                        // Console.WriteLine(line);
-                        arduinoTxt.AppendText(line);
-                        arduinoTxt.AppendText(Environment.NewLine);
-
-                        //Read the next line
-                        line = sr.ReadLine();
-                    }
-                    //close the file
-                    sr.Close();
-                    //Console.ReadLine();
-                }
-                catch (Exception ex)
-                {
-                    System.Windows.Forms.MessageBox.Show(ex.Message);
-                }
-                */
+                aSerialPort.Close();
             }
         }
 
@@ -5317,7 +5283,7 @@ namespace MissionPlanner.GCSViews
             if (result)
             {
                 serialDataChart.TriggeredUpdate(data);
-                serialDataChart.serieName = "serialRead";
+                //serialDataChart.serieName = "serialRead";
             }
 
         }

@@ -824,8 +824,10 @@ namespace MissionPlanner
             }
             if (splash != null)
             {
-                this.Text = splash?.Text;
-                titlebar = splash?.Text;
+                // this.Text = splash?.Text;
+                // titlebar = splash?.Text;
+                this.Text = "Project PaWiKAN";
+                titlebar = "Project PaWiKAN";
             }
 
             if (!MONO) // windows only
@@ -1082,7 +1084,7 @@ namespace MissionPlanner
             }
 
             MenuArduPilot.Image = new Bitmap(Properties.Resources._0d92fed790a3a70170e61a86db103f399a595c70, (int)(200), 31);
-            MenuArduPilot.Width = MenuArduPilot.Image.Width;
+            MenuArduPilot.Width = MenuArduPilot.Image.Width+20;
 
             if (Program.Logo2 != null)
                 MenuArduPilot.Image = Program.Logo2;
@@ -1751,7 +1753,9 @@ namespace MissionPlanner
                 // save the baudrate for this port
                 Settings.Instance[_connectionControl.CMB_serialport.Text + "_BAUD"] = _connectionControl.CMB_baudrate.Text;
 
-                this.Text = titlebar + " " + comPort.MAV.VersionString;
+                //this.Text = titlebar + " " + comPort.MAV.VersionString;
+
+                this.Text = "Project PaWiKAN";
 
                 // refresh config window if needed
                 if (MyView.current != null)

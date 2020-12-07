@@ -1911,6 +1911,7 @@
             // 
             resources.ApplyResources(this.arduinoTxt, "arduinoTxt");
             this.arduinoTxt.Name = "arduinoTxt";
+            this.arduinoTxt.TextChanged += new System.EventHandler(this.arduinoTxt_TextChanged);
             // 
             // label7
             // 
